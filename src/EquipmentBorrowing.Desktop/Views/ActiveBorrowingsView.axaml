@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             xmlns:m="using:EquipmentBorrowing.Application.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="EquipmentBorrowing.Desktop.Views.ActiveBorrowingsView"
+             x:DataType="vm:ActiveBorrowingsViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24" Spacing="20">
+            <!-- HEADER -->
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Active Borrowings &amp; Returns" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+                    <TextBlock Text="Monitor open equipment loans, due dates, and process returns (UC-04, UC-05)" FontSize="12" Foreground="#94A3B8" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <Button Command="{Binding LoadActiveBorrowingsCommand}"
+                            Background="#334155" Foreground="#F8FAFC"
+                            Padding="14,8" CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🔄" />
+                            <TextBlock Text="Refresh Loans" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- STATUS BANNER -->
+            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1"
+                    CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#F8FAFC" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- SELECTED LOAN ACTION BAR (UC-05) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="Quick Return Workflow (UC-05)" FontWeight="SemiBold" FontSize="14" Foreground="#34D399" />
+                        <TextBlock Text="Select any active loan from the table below and click 'Process Return' to restore equipment availability." FontSize="11" Foreground="#94A3B8" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Command="{Binding ReturnSelectedEquipmentCommand}"
+                            Content="📥 Process Return (UC-05)"
+                            Background="#059669" Foreground="#FFFFFF"
+                            FontWeight="SemiBold" Padding="18,10" CornerRadius="6" />
+                </Grid>
+            </Border>
+
+            <!-- ACTIVE BORROWINGS TABLE (UC-04) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="0">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- Column Header -->
+                    <Border Grid.Row="0" Background="#0F172A" Padding="16,10" CornerRadius="8,8,0,0">
+                        <Grid ColumnDefinitions="70,220,240,130,130,100">
+                            <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="1" Text="STUDENT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="2" Text="EQUIPMENT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="3" Text="CHECKOUT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="4" Text="DUE DATE" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="5" Text="STATUS" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Loans List -->
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding ActiveBorrowings}"
+                             SelectedItem="{Binding SelectedBorrowing}"
+                             Background="Transparent"
+                             Padding="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="m:BorrowingDetailDto">
+                                <Border Padding="16,12" BorderBrush="#334155" BorderThickness="0,0,0,1">
+                                    <Grid ColumnDefinitions="70,220,240,130,130,100">
+                                        <!-- ID -->
+                                        <TextBlock Grid.Column="0" Text="{Binding Id, StringFormat='#{0}'}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+
+                                        <!-- Student -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StudentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                            <TextBlock Text="{Binding StudentNumber}" FontSize="11" Foreground="#94A3B8" />
+                                        </StackPanel>
+
+                                        <!-- Equipment -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding EquipmentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                            <TextBlock Text="{Binding EquipmentIdentifier}" FontSize="11" Foreground="#38BDF8" />
+                                        </StackPanel>
+
+                                        <!-- Dates -->
+                                        <TextBlock Grid.Column="3" Text="{Binding FormattedBorrowDate}" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="{Binding FormattedDueDate}" Foreground="#FBBF24" FontWeight="SemiBold" VerticalAlignment="Center" />
+
+                                        <!-- Status Badge -->
+                                        <Border Grid.Column="5" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="10" Padding="8,3" Background="#065F46">
+                                            <TextBlock Text="Active" FontSize="11" FontWeight="Bold" Foreground="#34D399" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

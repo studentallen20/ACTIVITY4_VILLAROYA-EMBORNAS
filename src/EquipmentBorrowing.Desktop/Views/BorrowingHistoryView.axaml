@@ -1,0 +1,220 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             xmlns:m="using:EquipmentBorrowing.Application.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="650"
+             x:Class="EquipmentBorrowing.Desktop.Views.BorrowingHistoryView"
+             x:DataType="vm:BorrowingHistoryViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24" Spacing="20">
+            <!-- HEADER -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Borrowing History &amp; Multi-Criteria Search" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+                <TextBlock Text="Search, filter, sort records (UC-09) and inspect asynchronous historical lifecycle logs (UC-07, UC-08)" FontSize="12" Foreground="#94A3B8" />
+            </StackPanel>
+
+            <!-- FEEDBACK BANNER -->
+            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="#1E293B" BorderBrush="#F59E0B" BorderThickness="1"
+                    CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#F8FAFC" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- TABBED WORKFLOWS -->
+            <TabControl Background="Transparent">
+                <!-- TAB 1: ADVANCED SEARCH & FILTER (UC-09) -->
+                <TabItem Header="🔍 Search &amp; Filter (UC-09)" Foreground="#F8FAFC" FontSize="13">
+                    <StackPanel Spacing="16" Margin="0,16,0,0">
+                        <!-- Search Controls Panel -->
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Search, Filter, and Sort Criteria (BR-17)" FontWeight="SemiBold" FontSize="13" Foreground="#FBBF24" />
+
+                                <Grid ColumnDefinitions="*,140,160,Auto,Auto" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Search (Name, Student #, Equipment)" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Status Filter" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Sort Field" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Direction" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+
+                                    <!-- Search Input -->
+                                    <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding SearchQuery}" PlaceholderText="Type student or equipment name..." Margin="0,0,10,0" />
+
+                                    <!-- Status Combo -->
+                                    <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding StatusFilter}" Margin="0,0,10,0" HorizontalAlignment="Stretch">
+                                        <x:String>All</x:String>
+                                        <x:String>Active</x:String>
+                                        <x:String>Returned</x:String>
+                                    </ComboBox>
+
+                                    <!-- Sort Field Combo -->
+                                    <ComboBox Grid.Row="1" Grid.Column="2" SelectedItem="{Binding SortField}" Margin="0,0,10,0" HorizontalAlignment="Stretch">
+                                        <x:String>BorrowDate</x:String>
+                                        <x:String>DueDate</x:String>
+                                    </ComboBox>
+
+                                    <!-- Ascending Check -->
+                                    <CheckBox Grid.Row="1" Grid.Column="3" IsChecked="{Binding SortAscending}" Content="Ascending" Foreground="#CBD5E1" Margin="0,0,14,0" VerticalAlignment="Center" />
+
+                                    <!-- Buttons -->
+                                    <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal" Spacing="8">
+                                        <Button Command="{Binding ExecuteSearchCommand}" Content="Search" Background="#2563EB" Foreground="#FFFFFF" FontWeight="Bold" Padding="14,8" CornerRadius="6" />
+                                        <Button Command="{Binding ResetSearchCommand}" Content="Reset" Background="#475569" Foreground="#F8FAFC" Padding="12,8" CornerRadius="6" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Search Results Table -->
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="0">
+                            <Grid RowDefinitions="Auto,*">
+                                <Border Grid.Row="0" Background="#0F172A" Padding="16,10" CornerRadius="8,8,0,0">
+                                    <Grid ColumnDefinitions="60,200,220,110,110,110,90">
+                                        <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="1" Text="STUDENT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="2" Text="EQUIPMENT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="3" Text="CHECKOUT" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="4" Text="DUE DATE" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="5" Text="RETURNED" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBlock Grid.Column="6" Text="STATUS" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                                    </Grid>
+                                </Border>
+
+                                <ListBox Grid.Row="1" ItemsSource="{Binding SearchResults}" MaxHeight="380" Background="Transparent" Padding="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="m:BorrowingDetailDto">
+                                            <Border Padding="16,10" BorderBrush="#334155" BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="60,200,220,110,110,110,90">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Id, StringFormat='#{0}'}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding StudentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                                        <TextBlock Text="{Binding StudentNumber}" FontSize="11" Foreground="#94A3B8" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding EquipmentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                                        <TextBlock Text="{Binding EquipmentIdentifier}" FontSize="11" Foreground="#38BDF8" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="3" Text="{Binding FormattedBorrowDate}" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="4" Text="{Binding FormattedDueDate}" Foreground="#FBBF24" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="5" Text="{Binding FormattedReturnDate}" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                                    <Border Grid.Column="6" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="8" Padding="6,2"
+                                                            Background="{Binding IsActive, Converter={x:Null}}">
+                                                        <Border.Styles>
+                                                            <Style Selector="Border">
+                                                                <Setter Property="Background" Value="#334155" />
+                                                            </Style>
+                                                        </Border.Styles>
+                                                        <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="#F8FAFC" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+
+                <!-- TAB 2: STUDENT BORROWING HISTORY (UC-07) -->
+                <TabItem Header="🎓 Student History (UC-07)" Foreground="#F8FAFC" FontSize="13">
+                    <StackPanel Spacing="16" Margin="0,16,0,0">
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <Grid ColumnDefinitions="320,*,Auto">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Select Student" FontSize="11" Foreground="#94A3B8" />
+                                    <ComboBox ItemsSource="{Binding StudentsList}"
+                                              SelectedItem="{Binding SelectedHistoryStudent}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding StudentNumber}" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    <TextBlock Text="{Binding Name}" Foreground="#F8FAFC" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="0">
+                            <ListBox ItemsSource="{Binding StudentHistoryList}" MaxHeight="360" Background="Transparent" Padding="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="m:BorrowingDetailDto">
+                                        <Border Padding="16,12" BorderBrush="#334155" BorderThickness="0,0,0,1">
+                                            <Grid ColumnDefinitions="70,*,130,130,130,90">
+                                                <TextBlock Grid.Column="0" Text="{Binding Id, StringFormat='#{0}'}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding EquipmentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                                    <TextBlock Text="{Binding EquipmentIdentifier}" FontSize="11" Foreground="#94A3B8" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding FormattedBorrowDate, StringFormat='Checked out: {0}'}" Foreground="#CBD5E1" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="{Binding FormattedDueDate, StringFormat='Due: {0}'}" Foreground="#FBBF24" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="4" Text="{Binding FormattedReturnDate, StringFormat='Returned: {0}'}" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="5" Text="{Binding StatusText}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+
+                <!-- TAB 3: EQUIPMENT BORROWING HISTORY (UC-08) -->
+                <TabItem Header="📦 Equipment History (UC-08)" Foreground="#F8FAFC" FontSize="13">
+                    <StackPanel Spacing="16" Margin="0,16,0,0">
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <Grid ColumnDefinitions="320,*,Auto">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Select Equipment Item" FontSize="11" Foreground="#94A3B8" />
+                                    <ComboBox ItemsSource="{Binding EquipmentList}"
+                                              SelectedItem="{Binding SelectedHistoryEquipment}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Identifier}" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    <TextBlock Text="{Binding Name}" Foreground="#F8FAFC" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="0">
+                            <ListBox ItemsSource="{Binding EquipmentHistoryList}" MaxHeight="360" Background="Transparent" Padding="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="m:BorrowingDetailDto">
+                                        <Border Padding="16,12" BorderBrush="#334155" BorderThickness="0,0,0,1">
+                                            <Grid ColumnDefinitions="70,*,130,130,130,90">
+                                                <TextBlock Grid.Column="0" Text="{Binding Id, StringFormat='#{0}'}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StudentName}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                                    <TextBlock Text="{Binding StudentNumber}" FontSize="11" Foreground="#94A3B8" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding FormattedBorrowDate, StringFormat='Checked out: {0}'}" Foreground="#CBD5E1" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="{Binding FormattedDueDate, StringFormat='Due: {0}'}" Foreground="#FBBF24" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="4" Text="{Binding FormattedReturnDate, StringFormat='Returned: {0}'}" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="5" Text="{Binding StatusText}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

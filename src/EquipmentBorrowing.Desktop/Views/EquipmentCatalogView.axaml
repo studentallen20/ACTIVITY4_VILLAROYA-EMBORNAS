@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="EquipmentBorrowing.Desktop.Views.EquipmentCatalogView"
+             x:DataType="vm:EquipmentCatalogViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24" Spacing="20">
+            <!-- HEADER -->
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Equipment Catalog" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+                    <TextBlock Text="Browse registered hardware, check real-time availability, and update inventory (UC-01, UC-02, UC-15, UC-16)" FontSize="12" Foreground="#94A3B8" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <CheckBox Content="Available Only (UC-02)"
+                              IsChecked="{Binding ShowAvailableOnly}"
+                              Foreground="#CBD5E1"
+                              VerticalAlignment="Center" />
+                    <Button Command="{Binding LoadEquipmentCommand}"
+                            Background="#334155" Foreground="#F8FAFC"
+                            Padding="14,8" CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🔄" />
+                            <TextBlock Text="Refresh" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- FEEDBACK BANNER -->
+            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="{Binding IsError, Converter={x:Null}}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14,10">
+                <Border.Styles>
+                    <Style Selector="Border">
+                        <Setter Property="Background" Value="#1E293B" />
+                        <Setter Property="BorderBrush" Value="#3B82F6" />
+                    </Style>
+                </Border.Styles>
+                <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#F8FAFC" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- REGISTER EQUIPMENT PANEL (UC-15) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Register New Equipment Item (UC-15)" FontWeight="SemiBold" FontSize="14" Foreground="#38BDF8" />
+                    <Grid ColumnDefinitions="160,240,*,Auto" RowDefinitions="Auto,Auto">
+                        <!-- Labels -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Identifier (e.g. EQ-008)" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Item Name *" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Description / Specs (Optional)" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+
+                        <!-- Inputs -->
+                        <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding NewIdentifier}" PlaceholderText="EQ-008" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding NewName}" PlaceholderText="Equipment Name" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding NewDescription}" PlaceholderText="Specifications / condition" Margin="0,0,10,0" />
+                        <Button Grid.Row="1" Grid.Column="3"
+                                Command="{Binding RegisterEquipmentCommand}"
+                                Content="➕ Register Item"
+                                Background="#059669" Foreground="#FFFFFF"
+                                FontWeight="SemiBold" Padding="16,8" CornerRadius="6" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- EDIT EQUIPMENT PANEL (UC-16) -->
+            <Border IsVisible="{Binding IsEditing}"
+                    Background="#1E293B" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Edit Selected Equipment (UC-16 — Descriptive Updates Only)" FontWeight="SemiBold" FontSize="14" Foreground="#FBBF24" />
+                        <TextBlock Grid.Column="1" Text="Note: Availability &amp; borrowing status are protected from direct edit" FontSize="11" Foreground="#94A3B8" />
+                    </Grid>
+                    <Grid ColumnDefinitions="160,240,*,Auto,Auto" RowDefinitions="Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Identifier" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Name" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Description" FontSize="11" Foreground="#94A3B8" Margin="0,0,10,4" />
+
+                        <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding EditIdentifier}" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditName}" Margin="0,0,10,0" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding EditDescription}" Margin="0,0,10,0" />
+
+                        <Button Grid.Row="1" Grid.Column="3"
+                                Command="{Binding SaveEditCommand}"
+                                Content="💾 Save Changes"
+                                Background="#2563EB" Foreground="#FFFFFF"
+                                FontWeight="SemiBold" Padding="14,8" CornerRadius="6" Margin="0,0,8,0" />
+                        <Button Grid.Row="1" Grid.Column="4"
+                                Command="{Binding CancelEditCommand}"
+                                Content="Cancel"
+                                Background="#475569" Foreground="#F8FAFC"
+                                Padding="12,8" CornerRadius="6" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- EQUIPMENT LIST (UC-01, UC-02) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="0">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- Table Header -->
+                    <Border Grid.Row="0" Background="#0F172A" Padding="16,10" CornerRadius="8,8,0,0">
+                        <Grid ColumnDefinitions="140,240,*,130,90">
+                            <TextBlock Grid.Column="0" Text="IDENTIFIER" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="1" Text="NAME" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="2" Text="DESCRIPTION" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="3" Text="STATUS" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" />
+                            <TextBlock Grid.Column="4" Text="ACTIONS" FontWeight="Bold" FontSize="11" Foreground="#94A3B8" HorizontalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Items List -->
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding EquipmentList}"
+                             SelectedItem="{Binding SelectedEquipment}"
+                             Background="Transparent"
+                             Padding="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="16,12" BorderBrush="#334155" BorderThickness="0,0,0,1">
+                                    <Grid ColumnDefinitions="140,240,*,130,90">
+                                        <!-- Identifier -->
+                                        <TextBlock Grid.Column="0" Text="{Binding Identifier}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+
+                                        <!-- Name -->
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Medium" Foreground="#F8FAFC" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                                        <!-- Description -->
+                                        <TextBlock Grid.Column="2" Text="{Binding Description, FallbackValue='—'}" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                                        <!-- Availability Badge -->
+                                        <Border Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="12" Padding="10,4" Background="#1E3A8A">
+                                            <TextBlock Text="{Binding AvailabilityStatus}"
+                                                       FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="#38BDF8" />
+                                        </Border>
+
+                                        <!-- Edit Action Button -->
+                                        <Button Grid.Column="4"
+                                                Content="Edit"
+                                                Command="{Binding $parent[UserControl].((vm:EquipmentCatalogViewModel)DataContext).StartEditCommand}"
+                                                Background="#334155" Foreground="#F8FAFC"
+                                                FontSize="11" Padding="10,4" CornerRadius="4"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

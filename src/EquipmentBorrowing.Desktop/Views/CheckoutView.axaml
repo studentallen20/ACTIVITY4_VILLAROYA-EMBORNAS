@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="650"
+             x:Class="EquipmentBorrowing.Desktop.Views.CheckoutView"
+             x:DataType="vm:CheckoutViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24" Spacing="20">
+            <!-- HEADER -->
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Equipment Checkout Workflows" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+                    <TextBlock Text="Issue single items (UC-03) or coordinate atomic multi-item checkout (UC-06) with PostgreSQL transaction integrity" FontSize="12" Foreground="#94A3B8" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Command="{Binding LoadFormDataCommand}"
+                        Background="#334155" Foreground="#F8FAFC"
+                        Padding="14,8" CornerRadius="6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="🔄" />
+                        <TextBlock Text="Refresh Selections" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- FEEDBACK BANNER -->
+            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Background="#1E293B" BorderBrush="#8B5CF6" BorderThickness="1"
+                    CornerRadius="8" Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#F8FAFC" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- 1. STUDENT SELECTION & LIVE ELIGIBILITY (BR-01 to BR-04, BR-08, BR-09) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="1. Select Borrower (Student)" FontWeight="SemiBold" FontSize="14" Foreground="#A78BFA" />
+
+                    <Grid ColumnDefinitions="320,*,Auto">
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding Students}"
+                                  SelectedItem="{Binding SelectedStudent}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding StudentNumber}" FontWeight="Bold" Foreground="#38BDF8" />
+                                        <TextBlock Text="{Binding Name}" Foreground="#F8FAFC" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <Border Grid.Column="1" Margin="16,0,0,0" Background="#0F172A" CornerRadius="6" Padding="12,8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StudentLoanInfo, FallbackValue='Select a student to inspect borrowing eligibility and active loan limit'}"
+                                       FontSize="12" Foreground="#CBD5E1" />
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 2. EQUIPMENT SELECTION LIST (BR-05, BR-06, BR-10, BR-12) -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="2. Select Available Equipment Items" FontWeight="SemiBold" FontSize="14" Foreground="#A78BFA" />
+                        <TextBlock Grid.Column="1" Text="Check at least 2 items for multi-item atomic checkout" FontSize="11" Foreground="#94A3B8" />
+                    </Grid>
+
+                    <ListBox ItemsSource="{Binding AvailableEquipment}"
+                             MaxHeight="260"
+                             Background="#0F172A"
+                             CornerRadius="6"
+                             Padding="6">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:EquipmentSelectionItem">
+                                <Border Padding="10,6" BorderBrush="#1E293B" BorderThickness="0,0,0,1">
+                                    <Grid ColumnDefinitions="Auto,120,240,*">
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="0,0,12,0" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Equipment.Identifier}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Equipment.Name}" FontWeight="Medium" Foreground="#F8FAFC" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Equipment.Description, FallbackValue='—'}" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 3. DATE SELECTION, ATOMICITY CONTROLS, AND CHECKOUT ACTIONS -->
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="3. Expected Return Date &amp; Execution" FontWeight="SemiBold" FontSize="14" Foreground="#A78BFA" />
+
+                    <Grid ColumnDefinitions="240,*,Auto" RowDefinitions="Auto,Auto">
+                        <!-- Date Picker -->
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Expected Return Date (BR-11)" FontSize="11" Foreground="#94A3B8" />
+                            <DatePicker SelectedDate="{Binding ExpectedReturnDate}" />
+                        </StackPanel>
+
+                        <!-- A06 Test Seam: Simulated Transaction Failure Toggle -->
+                        <Border Grid.Column="1" Margin="20,0,0,0" Background="#0F172A" BorderBrush="#DC2626" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                            <CheckBox IsChecked="{Binding SimulateTransactionFailure}"
+                                      Foreground="#FCA5A5"
+                                      VerticalAlignment="Center">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Simulate Failure Inside Transaction (A06 Rubric Demonstration)" FontWeight="SemiBold" FontSize="12" Foreground="#EF4444" />
+                                    <TextBlock Text="Arranges a controlled failure after partial writes to prove zero records or availability state changes persist." FontSize="10" Foreground="#94A3B8" />
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                    </Grid>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*">
+                        <!-- Single checkout (UC-03) -->
+                        <Button Grid.Column="0"
+                                Command="{Binding IssueSingleItemCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                Background="#2563EB" Foreground="#FFFFFF"
+                                FontWeight="Bold" Padding="16,12" CornerRadius="6" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📦" />
+                                <TextBlock Text="Issue Single Item (UC-03)" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Multi checkout (UC-06) -->
+                        <Button Grid.Column="1"
+                                Command="{Binding IssueMultiItemCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                Background="#7C3AED" Foreground="#FFFFFF"
+                                FontWeight="Bold" Padding="16,12" CornerRadius="6" Margin="10,0,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="🛒" />
+                                <TextBlock Text="Atomic Multi-Item Checkout (UC-06)" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
