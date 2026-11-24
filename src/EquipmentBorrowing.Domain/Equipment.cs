@@ -7,6 +7,7 @@ public class Equipment
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsAvailable { get; set; } = true;
+    public string AvailabilityStatus => IsAvailable ? "Available" : "Borrowed";
 
     public Equipment() { }
 

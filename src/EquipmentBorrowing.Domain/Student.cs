@@ -7,6 +7,7 @@ public class Student
     public string Name { get; set; } = string.Empty;
     public string? ContactInfo { get; set; }
     public bool IsEligibleToBorrow { get; set; } = true;
+    public string EligibilityStatus => IsEligibleToBorrow ? "Eligible" : "Restricted";
     public int MaxBorrowLimit { get; set; } = 3;
 
     public Student() { }
