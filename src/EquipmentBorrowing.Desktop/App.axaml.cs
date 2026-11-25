@@ -34,7 +34,7 @@ public partial class App : Avalonia.Application
 
         var connectionString = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
             ?? configuration.GetConnectionString("DefaultConnection")
-            ?? "Host=localhost;Port=5432;Database=equipment_borrowing;Username=postgres;Password=postgres";
+            ?? "Host=localhost;Port=5432;Database=desktop_app_dev;Username=postgres;Password=admin143";
 
         // 2. Configure Dependency Injection Composition Root
         var services = new ServiceCollection();

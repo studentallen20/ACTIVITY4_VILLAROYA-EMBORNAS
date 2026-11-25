@@ -11,7 +11,7 @@ public class EquipmentBorrowingDesignTimeDbContextFactory : IDesignTimeDbContext
 
         // Fallback design-time connection string for migrations tooling
         var connectionString = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
-            ?? "Host=localhost;Port=5432;Database=equipment_borrowing;Username=postgres;Password=postgres";
+            ?? "Host=localhost;Port=5432;Database=desktop_app_dev;Username=postgres;Password=admin143";
 
         optionsBuilder.UseNpgsql(connectionString, b =>
         {
